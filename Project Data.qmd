@@ -1,0 +1,27 @@
+---
+title: "Project Data"
+format: html
+editor: visual
+---
+
+This file is for loading and cleaning datasets.
+
+```{r setup}
+library(tidyverse)
+
+```
+
+
+## ACS (American Community Survey) Data
+```{r}
+#Load the tidycensus package to connect to the US Census Bureau API
+library(tidycensus)
+
+
+
+
+
+```
+
+
+## \[Other Data\]
