@@ -13,14 +13,44 @@ library(tidyverse)
 
 
 ## ACS (American Community Survey) Data
-```{r}
+```{r import acs}
 #Load the tidycensus package to connect to the US Census Bureau API
 library(tidycensus)
 
+#Set Census API to access data
+census_key <- Sys.getenv("CENSUS_API_KEY")
+
+#Load variables for 5 year ACS. Use view() function to browse.
+all_vars <- load_variables(year = 2019, dataset = "acs5")
+
+states = c(1,2,3,4,5)
+
+#Define variables to load from the American Community Survey
+vars <- c(
+  transport_mode_public_transit = "B08301_010",
+  transport_mode_bike = "B08301_018",
+  transport_mode_walk = "B08301_019",
+  transport_mode_carpool = "B08301_004",
+  commute_time = "B08303_001",
+  median_household_income = "B19019_001"
+)
 
 
+#Load ACS data using the get_acs() function
+census_bureau_data <- get_acs(
+  geography = "tract",
+  variables = vars,
+  cache_table = TRUE,
+  year = 2019,
+  output = "wide",
+  state = "TX",
+  key = census_key,
+  survey = "acs5"
+)
 
+view(census_bureau_data)
 
+write.csv(census_bureau_data, file = "Census Bureau Data")
 ```
 
 
