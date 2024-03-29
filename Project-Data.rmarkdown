@@ -4,7 +4,9 @@ format: html
 editor: visual
 ---
 
+
 This file is for loading and cleaning datasets. 
+
 
 ```{r setup}
 #Load tidyverse packages for data cleaning
@@ -13,9 +15,11 @@ library(tidyverse)
 ```
 
 
+
 ## ACS (American Community Survey) Data Import
 
 We used the `load_variables()` function to search for the relevant variable codes
+
 
 ```{r import acs}
 #Load the tidycensus package to connect to the US Census Bureau API
@@ -79,7 +83,7 @@ census_bureau_data_raw <- get_acs(
 ```
 
 ```{r clean acs}
-#Keep the columns ending in E, the ACS estimates. Dropping the margin of error columns
+#Keep the columns ending in E, the actual estimates. Dropping the margin of error columns
 census_bureau_data_clean <- select(census_bureau_data_raw, ends_with("E"))
 
 census_bureau_data_clean <- mutate(
@@ -97,19 +101,25 @@ census_bureau_data_clean <- mutate(
   
 ```
 
+
 ## Other Data Import
+
 ```{r}
 
 ```
 
+
 ## Other Data Import
+
 ```{r}
 
 ```
+
 
 
 ## Combined Data
 Here we combine individual datasets into our final dataset to be used for ML models called `transportation_data`.
+
 
 ```{r}
 
