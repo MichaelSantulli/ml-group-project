@@ -12,7 +12,7 @@ library(tidyverse)
 ```
 
 
-## ACS (American Community Survey) Data
+## ACS (American Community Survey) Data Import
 ```{r import acs}
 #Load the tidycensus package to connect to the US Census Bureau API
 library(tidycensus)
@@ -23,7 +23,16 @@ census_key <- Sys.getenv("CENSUS_API_KEY")
 #Load variables for 5 year ACS. Use view() function to browse.
 all_vars <- load_variables(year = 2019, dataset = "acs5")
 
-states = c(1,2,3,4,5)
+#Create list of state codes, needed for get_acs() function
+states <- distinct(
+  select(fips_codes, state)
+  )
+
+#Convert from dataframe to vector
+states <- states[["state"]]
+
+#remove codes for US territories
+states <- states[1:51]
 
 #Define variables to load from the American Community Survey
 vars <- c(
@@ -43,15 +52,17 @@ census_bureau_data <- get_acs(
   cache_table = TRUE,
   year = 2019,
   output = "wide",
-  state = "TX",
+  state = states,
   key = census_key,
   survey = "acs5"
 )
 
 view(census_bureau_data)
 
-write.csv(census_bureau_data, file = "Census Bureau Data")
+write.csv(census_bureau_data, file = "Census Bureau Data.csv")
 ```
 
 
-## \[Other Data\]
+## Other Data Import
+
+## Data Cleaning
