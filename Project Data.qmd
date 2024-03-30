@@ -15,7 +15,7 @@ library(tidyverse)
 
 ## ACS (American Community Survey) Data Import
 
-We used the `load_variables()` function to search for the relevant variable codes
+The `tidycensus()` package can be used to import data from the decenial census and the American Community Survey. We used the `load_variables()` function to search for the relevant variable codes to import.
 
 ```{r import acs}
 #Load the tidycensus package to connect to the US Census Bureau API
@@ -47,20 +47,25 @@ states <- states[1:51]
 #Define variables to load from the American Community Survey
 vars <- c(
   total_population = "B01003_001",
+  
+  #Outcome variables
   transport_mode_public_transit = "B08301_010",
   transport_mode_bike = "B08301_018",
   transport_mode_walk = "B08301_019",
   transport_mode_carpool = "B08301_004",
-  #race_white = ,
-  #race_black = ,
-  #race_native_american = ,
-  #race_asian = ,
-  #race_pacific_islander = ,
-  #race_other = ,
-  #race_two_or_more = ,
+  
+  #Predictor variables
+  race_white = "C02003_003",
+  race_black = "C02003_004",
+  race_native_american = "C02003_005",
+  race_asian = "C02003_006",
+  race_pacific_islander = "C02003_007",
+  race_other = "C02003_008",
+  race_two_or_more = "C02003_009",
   #race_hispanic = ,
-  #age_median = ,
-  median_household_income = "B19019_001"
+  age_median = "B01002_001",
+  median_household_income = "B19019_001",
+  median_monthly_housing_costs = "B25105_001"
 )
 
 
@@ -78,10 +83,16 @@ census_bureau_data_raw <- get_acs(
 
 ```
 
+```{r}
+
+```
+
+
 ```{r clean acs}
 #Keep the columns ending in E, the ACS estimates. Dropping the margin of error columns
 census_bureau_data_clean <- select(census_bureau_data_raw, ends_with("E"))
 
+#
 census_bureau_data_clean <- mutate(
   census_bureau_data_clean,
   
@@ -91,9 +102,18 @@ census_bureau_data_clean <- mutate(
     
     transport_mode_bikeE = round((transport_mode_bikeE/total_populationE)*100, 2),
   
-    transport_mode_walkE = round((transport_mode_walkE/total_populationE)*100, 2)
-  )
+    transport_mode_walkE = round((transport_mode_walkE/total_populationE)*100, 2),
+  
+  race_whiteE = round((race_whiteE/total_populationE)*100, 2),
+  race_blackE = round((race_blackE/total_populationE)*100, 2),
+  race_native_americanE = round((race_native_americanE/total_populationE)*100, 2),
+  race_asianE = round((race_asianE/total_populationE)*100, 2),
+  race_pacific_islanderE = round((race_pacific_islanderE/total_populationE)*100, 2),
+  race_otherE = round((race_otherE/total_populationE)*100, 2),
+  race_two_or_moreE = round((race_two_or_moreE/total_populationE)*100, 2),
 
+  sustainable_modes_total = transport_mode_public_transitE + transport_mode_carpoolE + transport_mode_bikeE + transport_mode_walkE
+)
   
 ```
 
