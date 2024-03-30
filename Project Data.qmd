@@ -83,16 +83,11 @@ census_bureau_data_raw <- get_acs(
 
 ```
 
-```{r}
-
-```
-
-
 ```{r clean acs}
 #Keep the columns ending in E, the ACS estimates. Dropping the margin of error columns
 census_bureau_data_clean <- select(census_bureau_data_raw, ends_with("E"))
 
-#
+#Convert raw populations numbers to percentages
 census_bureau_data_clean <- mutate(
   census_bureau_data_clean,
   
@@ -111,9 +106,13 @@ census_bureau_data_clean <- mutate(
   race_pacific_islanderE = round((race_pacific_islanderE/total_populationE)*100, 2),
   race_otherE = round((race_otherE/total_populationE)*100, 2),
   race_two_or_moreE = round((race_two_or_moreE/total_populationE)*100, 2),
-
+  
+  #Adding an outcome variable of carpool, bike, walk, and public transit combined
   sustainable_modes_total = transport_mode_public_transitE + transport_mode_carpoolE + transport_mode_bikeE + transport_mode_walkE
 )
+
+#Create separate columns for Tract, County and State
+census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ",", names = c("Tract", "County", "State"))
   
 ```
 
