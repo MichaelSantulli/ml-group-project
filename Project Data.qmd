@@ -46,7 +46,6 @@ states <- states[1:51]
 
 #Define variables to load from the American Community Survey
 vars <- c(
-  puma5 = "PUMA5",
   total_population = "B01003_001",
   
   #Outcome variables
