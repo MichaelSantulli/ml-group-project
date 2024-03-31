@@ -114,7 +114,7 @@ census_bureau_data_clean <- mutate(
 )
 
 #Create separate columns for Tract, County and State
-#census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ",", names = c("Tract", "County", "State"))
+census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ",", names = c("Tract", "County", "State"))
   
 ```
 
