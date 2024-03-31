@@ -46,6 +46,7 @@ states <- states[1:51]
 
 #Define variables to load from the American Community Survey
 vars <- c(
+  puma5 = "PUMA5",
   total_population = "B01003_001",
   
   #Outcome variables
@@ -77,6 +78,8 @@ census_bureau_data_raw <- get_acs(
   year = 2019,
   output = "wide",
   state = states,
+  geometry = FALSE,
+  keep_geo_vars = FALSE,
   key = census_key,
   survey = "acs5"
 )
@@ -85,7 +88,7 @@ census_bureau_data_raw <- get_acs(
 
 ```{r clean acs}
 #Keep the columns ending in E, the ACS estimates. Dropping the margin of error columns
-census_bureau_data_clean <- select(census_bureau_data_raw, ends_with("E"))
+census_bureau_data_clean <- select(census_bureau_data_raw, !ends_with("M"))
 
 #Convert raw populations numbers to percentages
 census_bureau_data_clean <- mutate(
@@ -112,7 +115,7 @@ census_bureau_data_clean <- mutate(
 )
 
 #Create separate columns for Tract, County and State
-census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ",", names = c("Tract", "County", "State"))
+#census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ",", names = c("Tract", "County", "State"))
   
 ```
 
