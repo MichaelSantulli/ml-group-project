@@ -4,14 +4,13 @@ format: html
 editor: visual
 ---
 
-This file is for loading and cleaning datasets. 
+This file is for loading and cleaning datasets.
 
 ```{r setup}
 #Load tidyverse packages for data cleaning
 library(tidyverse)
 
 ```
-
 
 ## ACS (American Community Survey) Data Import
 
@@ -74,7 +73,7 @@ census_bureau_data_raw <- get_acs(
   geography = "tract",
   variables = vars,
   cache_table = TRUE,
-  year = 2019,
+  year = 2022,
   output = "wide",
   state = states,
   geometry = FALSE,
@@ -114,22 +113,24 @@ census_bureau_data_clean <- mutate(
 )
 
 #Create separate columns for Tract, County and State
-census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ",", names = c("Tract", "County", "State"))
+census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME", ";", names = c("Tract", "County", "State"))
   
 ```
 
 ## Other Data Import
-```{r}
+
+```{r DOT Data}
 
 ```
 
 ## Other Data Import
+
 ```{r}
 
 ```
 
-
 ## Combined Data
+
 Here we combine individual datasets into our final dataset to be used for ML models called `transportation_data`.
 
 ```{r}
@@ -143,4 +144,3 @@ view(transportation_data)
 write.csv(transportation_data, file = "Transportation Data.csv")
 
 ```
-
