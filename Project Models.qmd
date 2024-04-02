@@ -6,8 +6,29 @@ editor: visual
 
 This file is for building and testing machine learning models.
 
+```{r setup}
+
+#Load and preview dataset for analysis
+model_data <- read.csv("Transportation Data.csv")
+view(model_data)
+
+## Use model_data for machine learning models below
+```
+
 ## Model 1
+
+```{r}
+
+```
 
 ## Model 2
 
+```{r}
+
+```
+
 ## Model X
+
+```{r}
+
+```
