@@ -144,9 +144,7 @@ Here we combine individual datasets into our final dataset to be used for ML mod
 ```{r}
 
 #Combine individual datasets into the final dataset
-transportation_data <- census_bureau_data_clean
-
-model_data <- left_join(census_bureau_data_clean, dot_clean)
+transportation_data <- left_join(census_bureau_data_clean, dot_clean)
 
 view(transportation_data)
 
