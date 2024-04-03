@@ -144,13 +144,13 @@ Here we combine individual datasets into our final dataset to be used for ML mod
 ```{r}
 
 #Combine individual datasets into the final dataset
-transportation_data <- left_join(census_bureau_data_clean, dot_clean)
+model_data <- left_join(census_bureau_data_clean, dot_clean)
 
-view(transportation_data)
+view(model_data)
 
 
 
 #Export the final dataset to a .csv file
-write.csv(transportation_data, file = "Transportation Data.csv")
+write.csv(model_data, file = "Transportation Data.csv")
 
 ```
