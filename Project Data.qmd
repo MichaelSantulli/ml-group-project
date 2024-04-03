@@ -129,6 +129,13 @@ dot$GEOID <- str_split_i(dot$GEOIDFQ, "US",2)
 
 dot_clean <- select(dot, c("GEOID","NAMELSAD","Number.of.Intersections", "Number.of.Transit.Stops", "Acres","Intersection.Per.Acre","Stops.Per.Acre"))
 
+#Add column for square miles per census tract
+dot_clean <- mutate(
+  dot_clean,
+  sq_mi = Acres * 0.0015625
+)
+                    
+
 ```
 
 ## Other Data Import
@@ -145,6 +152,13 @@ Here we combine individual datasets into our final dataset to be used for ML mod
 
 #Combine individual datasets into the final dataset
 model_data <- left_join(census_bureau_data_clean, dot_clean)
+
+#Add column for population density (people per sq mile)
+model_data <- mutate(
+  model_data,
+  pop_density = round(total_populationE/sq_mi,0)
+)
+
 
 view(model_data)
 
