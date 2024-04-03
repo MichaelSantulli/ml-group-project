@@ -120,7 +120,14 @@ census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME
 ## Other Data Import
 
 ```{r DOT Data}
-dot <- read.csv("Tracts_Stops_Xsctns.csv")
+library(stringr)
+dot <- read.csv("UseThis_Tracts_Stops_Xsctns.csv")
+dot$GEOID <- str_split_i(dot$GEOIDFQ, "US",2)
+  #Compiled # of road intersections from DOT'S Arnold dataset in ArcGIS, and # of transit stops from DOT'S National Transit Map dataset. Standardized to tract level by calculating rate per acre. 
+
+  # For Ben - fix leading zeroes problem
+
+dot_clean <- select(dot, c("GEOID","NAMELSAD","Number.of.Intersections", "Number.of.Transit.Stops", "Acres","Intersection.Per.Acre","Stops.Per.Acre"))
 
 ```
 
@@ -139,7 +146,11 @@ Here we combine individual datasets into our final dataset to be used for ML mod
 #Combine individual datasets into the final dataset
 transportation_data <- census_bureau_data_clean
 
+model_data <- left_join(census_bureau_data_clean, dot_clean)
+
 view(transportation_data)
+
+
 
 #Export the final dataset to a .csv file
 write.csv(transportation_data, file = "Transportation Data.csv")
