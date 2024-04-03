@@ -120,6 +120,7 @@ census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME
 ## Other Data Import
 
 ```{r DOT Data}
+dot <- read.csv("Tracts_Stops_Xsctns.csv")
 
 ```
 
