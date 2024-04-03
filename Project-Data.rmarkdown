@@ -1,0 +1,126 @@
+---
+title: "Project Data"
+format: html
+editor: visual
+---
+
+This file is for loading and cleaning datasets.
+
+```{r setup}
+#Load tidyverse packages for data cleaning
+library(tidyverse)
+
+```
+
+## ACS (American Community Survey) Data Import
+
+We used the `load_variables()` function to search for the relevant variable codes
+
+```{r import acs}
+#Load the tidycensus package to connect to the US Census Bureau API
+library(tidycensus)
+
+#Set Census API to access data
+census_key <- Sys.getenv("CENSUS_API_KEY")
+
+#Load variables for 5 year ACS. Use view() function to browse.
+vars_acs5 <- load_variables(year = 2019, dataset = "acs5")
+
+vars_acs5_profile <- load_variables(year = 2019, dataset = "acs5/profile")
+
+vars_acs5_subject <- load_variables(year = 2019, dataset = "acs5/subject")
+
+
+
+#Create list of state codes, needed for get_acs() function
+states <- distinct(
+  select(fips_codes, state)
+  )
+
+#Convert from dataframe to vector
+states <- states[["state"]]
+
+#remove codes for US territories
+states <- states[1:51]
+
+#Define variables to load from the American Community Survey
+vars <- c(
+  geocode_id = "PUMA5",
+  total_population = "B01003_001",
+  transport_mode_public_transit = "B08301_010",
+  transport_mode_bike = "B08301_018",
+  transport_mode_walk = "B08301_019",
+  transport_mode_carpool = "B08301_004",
+  #race_white = ,
+  #race_black = ,
+  #race_native_american = ,
+  #race_asian = ,
+  #race_pacific_islander = ,
+  #race_other = ,
+  #race_two_or_more = ,
+  #race_hispanic = ,
+  #age_median = ,
+  median_household_income = "B19019_001"
+)
+
+
+#Load ACS data using the get_acs() function
+census_bureau_data_raw <- get_acs(
+  geography = "tract",
+  variables = vars,
+  cache_table = TRUE,
+  year = 2019,
+  output = "wide",
+  state = states,
+  key = census_key,
+  survey = "acs5"
+)
+
+```
+
+```{r clean acs}
+#Keep the columns ending in E, the actual estimates. Dropping the margin of error columns
+census_bureau_data_clean <- select(census_bureau_data_raw, ends_with("E"))
+
+census_bureau_data_clean <- mutate(
+  census_bureau_data_clean,
+  
+  transport_mode_public_transitE = round((transport_mode_public_transitE/total_populationE)*100, 2),
+    
+    transport_mode_carpoolE = round((transport_mode_carpoolE/total_populationE)*100, 2),
+    
+    transport_mode_bikeE = round((transport_mode_bikeE/total_populationE)*100, 2),
+  
+    transport_mode_walkE = round((transport_mode_walkE/total_populationE)*100, 2)
+  )
+
+  
+```
+
+## Other Data Import
+
+```{r}
+
+```
+
+## Other Data Import
+
+```{r}
+
+```
+
+## Combined Data
+
+Here we combine individual datasets into our final dataset to be used for ML models called `transportation_data`.
+
+```{r}
+
+#Combine individual datasets into the final dataset
+transportation_data <- census_bureau_data_clean
+
+view(transportation_data)
+
+#Export the final dataset to a .csv file
+write.csv(transportation_data, file = "Transportation Data.csv")
+
+```
