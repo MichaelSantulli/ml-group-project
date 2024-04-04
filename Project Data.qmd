@@ -120,7 +120,7 @@ census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME
   
 ```
 
-## Other Data Import
+## Department of Transportation Data Import
 
 ```{r DOT Data}
 library(stringr)
