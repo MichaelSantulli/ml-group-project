@@ -10,15 +10,29 @@ This file is for building and testing machine learning models.
 
 #Load and preview dataset for analysis
 model_data <- read.csv("Transportation Data.csv")
-view(model_data)
+#view(model_data)
 
 ## Use model_data for machine learning models below
 ```
 
 ## Model 1
 
-```{r}
+#### Multiple Linear Regression 
 
+Outcome variable - sustainable_modes_total
+
+Predictors - state, median age, and population density
+
+```{r}
+lm.fit <- lm(sustainable_modes_total ~ State + age_medianE + pop_density, data = model_data)
+summary(lm.fit)
+```
+
+```{r}
+summary(lm(sustainable_modes_total ~ State * pop_density , data = model_data))
+```
+
+```{r}
 ```
 
 ## Model 2
