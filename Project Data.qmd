@@ -61,7 +61,7 @@ vars <- c(
   race_pacific_islander = "C02003_007",
   race_other = "C02003_008",
   race_two_or_more = "C02003_009",
-  #race_hispanic = ,
+  race_hispanic = "B03001_003",
   age_median = "B01002_001",
   median_household_income = "B19019_001",
   median_monthly_housing_costs = "B25105_001"
@@ -108,6 +108,9 @@ census_bureau_data_clean <- mutate(
   race_otherE = round((race_otherE/total_populationE)*100, 2),
   race_two_or_moreE = round((race_two_or_moreE/total_populationE)*100, 2),
   
+  race_hispanic =
+    round((race_hispanicE/total_populationE)*100, 2),
+  
   #Adding an outcome variable of carpool, bike, walk, and public transit combined
   sustainable_modes_total = transport_mode_public_transitE + transport_mode_carpoolE + transport_mode_bikeE + transport_mode_walkE
 )
@@ -117,7 +120,7 @@ census_bureau_data_clean <- separate_wider_delim(census_bureau_data_clean, "NAME
   
 ```
 
-## Other Data Import
+## Department of Transportation Data Import
 
 ```{r DOT Data}
 library(stringr)
@@ -128,6 +131,13 @@ dot$GEOID <- str_split_i(dot$GEOIDFQ, "US",2)
   # For Ben - fix leading zeroes problem
 
 dot_clean <- select(dot, c("GEOID","NAMELSAD","Number.of.Intersections", "Number.of.Transit.Stops", "Acres","Intersection.Per.Acre","Stops.Per.Acre"))
+
+#Add column for square miles per census tract
+dot_clean <- mutate(
+  dot_clean,
+  sq_mi = Acres * 0.0015625
+)
+                    
 
 ```
 
@@ -144,13 +154,18 @@ Here we combine individual datasets into our final dataset to be used for ML mod
 ```{r}
 
 #Combine individual datasets into the final dataset
-transportation_data <- census_bureau_data_clean
-
 model_data <- left_join(census_bureau_data_clean, dot_clean)
 
-view(transportation_data)
+#Add column for population density (people per sq mile)
+model_data <- mutate(
+  model_data,
+  pop_density = round(total_populationE/sq_mi,0)
+)
+
+
+view(model_data)
 
 #Export the final dataset to a .csv file
-write.csv(transportation_data, file = "Transportation Data.csv")
+write.csv(model_data, file = "Transportation Data.csv")
 
 ```
