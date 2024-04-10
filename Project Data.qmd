@@ -150,8 +150,6 @@ model_data <- left_join(census_bureau_data_clean, dot_clean)
 
 view(transportation_data)
 
-
-
 #Export the final dataset to a .csv file
 write.csv(transportation_data, file = "Transportation Data.csv")
 
