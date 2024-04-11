@@ -54,7 +54,7 @@ Outcome - sustainable_modes_total, Predictor - State.
 
 States with higher prob of taking sustainable modes of transit are Alaska,California, Colorado, Connecticut, DC, Hawaii, Illinois, Maine, Maryland, Massachusetts, Minnesota, Montana, Nevada, New Jersey, New York, Oregon, Pennsylvania, Rhode Island, Vermont, Virginia, Washington, Wyoming.
 
-\*Note - with coefficients greater than 2. Also cool to see that West Virginia, Tennesee, Mississippi, and Arkansas have the smallest coefficients ( \< 1)
+*Note - with coefficients greater than 2. Also cool to see that West Virginia, Tennesee, Mississippi, and Arkansas have the smallest coefficients ( \< 1)
 
 ```{r}
 lm.fit_1 <- lm(sustainable_modes_total ~ State, data = model_data)
