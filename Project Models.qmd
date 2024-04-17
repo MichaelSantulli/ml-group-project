@@ -48,6 +48,12 @@ lm.fit5 <- lm(transport_mode_bikeE ~ age_medianE, data = model_data)
 summary(lm.fit5)
 ```
 
+```{r}
+lm_am<- lm(sustainable_modes_total ~ median_monthly_housing_costsE + race_whiteE,
+ data = model_data)
+summary(lm_am)
+```
+
 ### Model 1 - 2
 
 Outcome - sustainable_modes_total, Predictor - State.
@@ -135,9 +141,9 @@ summary(mlr.fit2_pub_transit)
 This fit takes really long - many counties.
 
 ```{r}
-#mlrfit1<- lm(sustainable_modes_total ~ County + pop_density, data = model_data)
-#summary(mlrfit1)
-
+mlr.fit_many <- lm(sustainable_modes_total ~ race_whiteE + race_blackE + race_native_americanE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + pop_density + median_household_incomeE + median_monthly_housing_costsE + Number.of.Intersections + Number.of.Transit.Stops,
+ data = model_data)
+summary(mlr.fit_many)
 ```
 
 ## Model 3 - Linear Discriminant Analysis
