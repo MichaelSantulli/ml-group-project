@@ -173,3 +173,11 @@ summary(matrix.pca) ### Wehile we don't have a foremost variable that explains t
 
 
 ```
+
+## Model X - Support Vector Machines
+
+```{r}
+#load package for support vector machines
+library(e1071)
+
+```
