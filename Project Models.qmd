@@ -8,6 +8,9 @@ This file is for building and testing machine learning models.
 
 ```{r setup}
 
+#Load tools for data cleaning
+library(tidyverse)
+
 #Load and preview dataset for analysis
 model_data <- read.csv("Transportation Data.csv")
 #view(model_data)
@@ -179,5 +182,8 @@ summary(matrix.pca) ### Wehile we don't have a foremost variable that explains t
 ```{r}
 #load package for support vector machines
 library(e1071)
+
+  
+)
 
 ```
