@@ -159,3 +159,17 @@ summary(mlr.fit_many)
 ```{r}
 
 ```
+
+## Model X - Unsupervised Clustering
+
+We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be cross-implemented into these census tracts and find success.
+
+```{r}
+num.only_data <- na.omit(model_data[,c(6:23,25:31)]) ### Need to get rid of any rows with na's, removed 1607 rows for upcoming PCA analysis.
+model.data.matrix <- data.matrix(scale(num.only_data)) ### PCA needs to be scaled with mean of 0, SD of 1. scale() does exactly that. prcomp() also needs a matrix to run, data.matrix() does this.
+matrix.pca <- prcomp(model.data.matrix) ### This gives us a PCA which should tell us foremost variables that explain most variance or PVE.
+
+summary(matrix.pca) ### Wehile we don't have a foremost variable that explains the majority of the variance found in our data, PC1-16 explains 95% of our variance which is a threshold many look for. 
+
+
+```
