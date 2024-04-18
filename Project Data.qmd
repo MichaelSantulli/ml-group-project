@@ -165,9 +165,7 @@ model_data <- mutate(
 
 view(model_data)
 
-
-
 #Export the final dataset to a .csv file
-write.csv(model_data, file = "Transportation Data.csv")
+write.csv(model_data, file = "Transportation_Data_merged.csv")
 
 ```
