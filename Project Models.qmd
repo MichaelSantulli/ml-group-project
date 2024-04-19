@@ -168,7 +168,7 @@ summary(mlr.fit_many)
 We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be cross-implemented into these census tracts and find success.
 
 ```{r}
-num.only_data <- na.omit(model_data[,c(11,13,16,19,20,21,28,29)]) ### Need to get rid of any rows with na's, removed 1607 rows for upcoming PCA analysis. ##race_whiteE, race_native_american_E, race_other_E,age_medianE,median_household_incomeE, median_monthly_housing_costsE, ints.per.acre, transit.stops.per.acre
+num.only_data <- na.omit(model_data[,c(2,11,13,16,19,20,21,23,28,29)]) ### Need to get rid of any rows with na's, removed 1607 rows for upcoming PCA analysis. ##race_whiteE, race_native_american_E, race_other_E,age_medianE,median_household_incomeE, median_monthly_housing_costsE, ints.per.acre, transit.stops.per.acre
 #model.data.matrix <- data.matrix(scale(num.only_data)) 
 
 ### PCA needs to be scaled with mean of 0, SD of 1. scale() does exactly that. prcomp() also needs a matrix to run, data.matrix() does this.
@@ -177,21 +177,28 @@ num.only_data <- na.omit(model_data[,c(11,13,16,19,20,21,28,29)]) ### Need to ge
 ### This gives us a correlation matrix that can be read as a distance matrix for prcomp() to chew through.
 
 ###ERROR - correlate matrix was too large, will demonstrate concept with sample of 1000 census tracts.
-
+set.seed(10)
 samp.vct <- sample(nrow(num.only_data), 1000)
 
-sample.data <- num.only_data[samp.vct,]
+sample.data <- num.only_data[samp.vct,c(8,9)]
 samp.data.matrix <- data.matrix(scale(sample.data))
 
 samp.dist <- as.dist(1 - cor(t(samp.data.matrix)))
 
 samp.hier <- hclust(samp.dist, method = "complete")
-cut.hier <- cutree(samp.hier, k = 8)
+cut.hier <- cutree(samp.hier, k = 5)
 
 
 plot(samp.hier, main = "Complete Linkage with Correlation-Based Distance", xlab = "", sub = "")
 plot(cut.hier, main = "Complete Linkage with Correlation-Based Distance, K = 8", xlab = "", sub = "")
 
+cluster.df <- data.frame(cmdscale(samp.dist), factor(cut.hier))
+
+names(cluster.df) <- c("x", "y", "cluster")
+cluster.df$model <- rownames(cluster.df)
+
+
+ggplot(cluster.df, aes(x, y)) + geom_point(aes(colour = cluster), size=3)
 ```
 
 ## Model X - Support Vector Machines
