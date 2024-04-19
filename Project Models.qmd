@@ -12,7 +12,7 @@ This file is for building and testing machine learning models.
 library(tidyverse)
 
 #Load and preview dataset for analysis
-model_data <- read.csv("Transportation Data.csv")
+model_data <- read.csv("Transportation_Data_merged.csv")
 #view(model_data)
 
 ## Use model_data for machine learning models below
@@ -206,6 +206,7 @@ ggplot(cluster.df, aes(x, y)) + geom_point(aes(colour = cluster), size=3)
 ```{r}
 #load package for support vector machines
 library(e1071)
+set.seed(1)
 
 #Generate a histogram of sustainable travel mode usage to select the threshold for classification.
 hist(model_data$sustainable_modes_total)
@@ -213,13 +214,40 @@ hist(model_data$sustainable_modes_total)
 #Adjusting the data for a classification method by turning sustainable_modes_total (percentage) into lables Low (less than 10%) and High (10% or more). Using 10% since the majority are less than that, but a small portion are above.
 model_data_svm <- mutate(
   model_data,
-  sustainable_modes_class = case_when(
+  sustainable_modes_class = as.factor(case_when(
     sustainable_modes_total < 10 ~ "low",
-    sustainable_modes_total >= 10 ~ "high"
+    sustainable_modes_total >= 10 ~ "high")
   )
 )
 
-svm.fit()
-  
+model_data_svm <- na.omit(model_data_svm)
+
+train <- sample(dim(model_data_svm)[1],10000)
+test <- sample(dim(model_data_svm)[1],10000)
+
+model_data_svm_train <- model_data_svm[train,]
+model_data_svm_test <- model_data_svm[test,]
+
+#svm.fit <- svm(sustainable_modes_class ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = model_data_svm_train, kernel = "linear", cost = 10, scale = TRUE)
+
+tune.out <- tune(svm, 
+             sustainable_modes_class ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Intersection.Per.Acre + Stops.Per.Acre + pop_density,
+             data = model_data_svm_train,
+             kernel = "linear",
+             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100))
+             )
+
+bestmod <- tune.out$best.model
+summary(bestmod)
+
+svm_predict <- predict(bestmod, model_data_svm_test)
+results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
+
+test_error <- (results[1,2] + results[2,1])/10000
+
+test_error
+
+
+
 
 ```
