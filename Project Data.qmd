@@ -108,7 +108,7 @@ census_bureau_data_clean <- mutate(
   race_otherE = round((race_otherE/total_populationE)*100, 2),
   race_two_or_moreE = round((race_two_or_moreE/total_populationE)*100, 2),
   
-  race_hispanic =
+  race_hispanicE =
     round((race_hispanicE/total_populationE)*100, 2),
   
   #Adding an outcome variable of carpool, bike, walk, and public transit combined
