@@ -165,43 +165,7 @@ summary(mlr.fit_many)
 
 ## Model X - Unsupervised Clustering
 
-We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be cross-implemented into these census tracts and find success.
-
-```{r}
-num.only_data <- na.omit(model_data[,c(2,11,13,16,19,20,21,23,28,29)]) ### Need to get rid of any rows with na's, removed 1607 rows for upcoming PCA analysis. 
-##
-#model.data.matrix <- data.matrix(scale(num.only_data)) 
-
-### PCA needs to be scaled with mean of 0, SD of 1. scale() does exactly that. prcomp() also needs a matrix to run, data.matrix() does this.
-
-#matrix.dist <- as.dist(1 - cor(t(model.data.matrix))) 
-### This gives us a correlation matrix that can be read as a distance matrix for prcomp() to chew through.
-
-###ERROR - correlate matrix was too large, will demonstrate concept with sample of 1000 census tracts.
-set.seed(10)
-samp.vct <- sample(nrow(num.only_data), 1000)
-
-sample.data <- num.only_data[samp.vct,c(8,9)]
-samp.data.matrix <- data.matrix(scale(sample.data))
-
-samp.dist <- as.dist(1 - cor(t(samp.data.matrix)))
-
-samp.hier <- hclust(samp.dist, method = "complete")
-cut.hier <- cutree(samp.hier, k = 5)
-
-plot(samp.hier, main = "Complete Linkage with Correlation-Based Distance", xlab = "", sub = "")
-plot(cut.hier, main = "Complete Linkage with Correlation-Based Distance, K = 8", xlab = "", sub = "")
-
-cluster.df <- data.frame(cmdscale(samp.dist), factor(cut.hier))
-
-names(cluster.df) <- c("x", "y", "cluster")
-cluster.df$model <- rownames(cluster.df)
-
-
-ggplot(cluster.df, aes(x, y)) + geom_point(aes(colour = cluster), size=3)
-```
-
-## Model Ben 2 - Cluster analysis
+We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be emulated by their peers.
 
 The hope is to plot rates of sustainable modes of transport on Y axis, then PC1 on X axis to try and capture as much variance as possible on one axis. A k-means will be performed to hopefully create stratified layers to illustrate "leaps" in rates of non-auto transportation.
 
@@ -223,7 +187,17 @@ plot(cumsum(pve.v2), xlab = "Principal Component",
 ylab = "Cumulative Proportion of Variance Explained", ylim = c(0, 1), type = "b") 
 autoplot(pca.v2, label = TRUE) ## Plots to illustrate PCA in action.
 
-k3.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 3, nstart = 50) ## Now we look to cluster the sampled census tracts based on our eight vars using our PCA to give our final graph some context as to the demographics and infrastructure in each tract.
+set.seed(2)
+k2.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 2, nstart = 50) #61.4%
+k3.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 3, nstart = 50) #82.3%
+k4.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 4, nstart = 50) #89.7%
+k5.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 5, nstart = 50) #93.1%
+k6.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 6, nstart = 50) #95.3%
+
+wss_df <- t(data.frame(61.4,82.3,89.7,93.1,95.3))
+k_df<- t(data.frame(2,3,4,5,6))
+plot(x= k_df, y = wss_df, ylim = c(0,100), xlab = "K", ylab = "between SS / total SS %")
+## Now we look to cluster the sampled census tracts based on our eight vars using our PCA to give our final graph some context as to the demographics and infrastructure in each tract. Using the elbow test, I thought k = 3 would provide a good balance of fit goodness and interpretability. A betweenSS/totalSS of 82.3% indicating a decent fit. 
 
 plot(pca.v2$x[,1],samp.matrix.v2[,10])
 
@@ -233,6 +207,7 @@ k3.plot <- fviz_cluster(k3.samp.v2, data = samp.matrix.v2[, -c(1,10)],
              ellipse.type = "convex", 
              ggtheme = theme_bw()
              ) ##fviz_cluster from factoextra creates a great k-means cluster plot with accompanying convex hull to make visualization easy.
+k3.plot
 
 final.plot.df <- data.frame(samp.matrix.v2,pca.v2$x[,1],k3.samp.v2$cluster) ## Combine the PC1 coordinates and cluster number with the rest of the data to create the final plot
 names(final.plot.df)[names(final.plot.df) == 'sustainable_modes_total'] <- 'Rate of Sustainable Travel'
@@ -241,7 +216,11 @@ names(final.plot.df)[names(final.plot.df) == 'k3.samp.v2.cluster'] <- 'Cluster' 
 
 final.plot <- ggplot(data = final.plot.df, aes(x = `PC1 Coordinates`, y = `Rate of Sustainable Travel`)) + 
   geom_point(aes(color = as.factor(`Cluster`))) +
-    geom_mark_hull(aes(fill = as.factor(`Cluster`)), alpha = 0.1, concavity = 0)
+  geom_mark_hull(aes(fill = as.factor(`Cluster`)), alpha = 0.1, concavity = 0) +
+  guides(color=guide_legend("Cluster"), fill = "none") +
+  theme_bw() +
+  xlab("PC1 Coordinates (34.1%)") +
+  ylab("Rate of Sustainable Travel (%)")
 
 final.plot ## Pretty stratified, although clusters 2 & 3 have plenty of overlap. However, if we look at the means of each cluster based on key variables.
 
