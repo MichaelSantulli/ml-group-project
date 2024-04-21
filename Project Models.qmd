@@ -168,7 +168,8 @@ summary(mlr.fit_many)
 We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be cross-implemented into these census tracts and find success.
 
 ```{r}
-num.only_data <- na.omit(model_data[,c(2,11,13,16,19,20,21,23,28,29)]) ### Need to get rid of any rows with na's, removed 1607 rows for upcoming PCA analysis. ##race_whiteE, race_native_american_E, race_other_E,age_medianE,median_household_incomeE, median_monthly_housing_costsE, ints.per.acre, transit.stops.per.acre
+num.only_data <- na.omit(model_data[,c(2,11,13,16,19,20,21,23,28,29)]) ### Need to get rid of any rows with na's, removed 1607 rows for upcoming PCA analysis. 
+##
 #model.data.matrix <- data.matrix(scale(num.only_data)) 
 
 ### PCA needs to be scaled with mean of 0, SD of 1. scale() does exactly that. prcomp() also needs a matrix to run, data.matrix() does this.
@@ -188,7 +189,6 @@ samp.dist <- as.dist(1 - cor(t(samp.data.matrix)))
 samp.hier <- hclust(samp.dist, method = "complete")
 cut.hier <- cutree(samp.hier, k = 5)
 
-
 plot(samp.hier, main = "Complete Linkage with Correlation-Based Distance", xlab = "", sub = "")
 plot(cut.hier, main = "Complete Linkage with Correlation-Based Distance, K = 8", xlab = "", sub = "")
 
@@ -199,6 +199,61 @@ cluster.df$model <- rownames(cluster.df)
 
 
 ggplot(cluster.df, aes(x, y)) + geom_point(aes(colour = cluster), size=3)
+```
+
+## Model Ben 2 - Cluster analysis
+
+The hope is to plot rates of sustainable modes of transport on Y axis, then PC1 on X axis to try and capture as much variance as possible on one axis. A k-means will be performed to hopefully create stratified layers to illustrate "leaps" in rates of non-auto transportation.
+
+```{r}
+###Now we try to cluster census tracts based on similarity to each other on the 8 vars we choose bc of importance(). Since my computer cannot handle calculating the cor() of 82,000 obs, we sample 1000 and utilize that.
+cluster.df.v2 <- select(model_data, c("GEOID", "pop_density","Intersection.Per.Acre","Stops.Per.Acre","median_monthly_housing_costsE","age_medianE","race_whiteE","race_blackE","race_hispanicE","sustainable_modes_total"))
+cluster.matrix.v2 <- na.omit(data.matrix(cluster.df.v2))
+
+
+set.seed(123)
+samp.vct.v2 <- sample(nrow(cluster.matrix.v2), 1000)
+samp.matrix.v2 <- cluster.matrix.v2[samp.vct.v2,]
+
+pca.v2 <- prcomp(samp.matrix.v2[,-c(1,10)], scale = T)
+pve.v2 <- pca.v2$sdev^2 / sum((pca.v2$sdev)^2)
+pve.v2 ## It looks like PC1 is only explaining 34% of the variance, and may not portray the whole picture when it comes to plotting it against sustainable modes of transport. However, we will use PC1 to serve as our X axis in our final plot.
+
+plot(cumsum(pve.v2), xlab = "Principal Component",
+ylab = "Cumulative Proportion of Variance Explained", ylim = c(0, 1), type = "b") 
+autoplot(pca.v2, label = TRUE) ## Plots to illustrate PCA in action.
+
+k3.samp.v2 <- kmeans(samp.matrix.v2[,-c(1,10)], 3, nstart = 50) ## Now we look to cluster the sampled census tracts based on our eight vars using our PCA to give our final graph some context as to the demographics and infrastructure in each tract.
+
+plot(pca.v2$x[,1],samp.matrix.v2[,10])
+
+k3.plot <- fviz_cluster(k3.samp.v2, data = samp.matrix.v2[, -c(1,10)],
+             palette = c("#2E9FDF", "#00AFBB", "#E7B800"), 
+             geom = "point",
+             ellipse.type = "convex", 
+             ggtheme = theme_bw()
+             ) ##fviz_cluster from factoextra creates a great k-means cluster plot with accompanying convex hull to make visualization easy.
+
+final.plot.df <- data.frame(samp.matrix.v2,pca.v2$x[,1],k3.samp.v2$cluster) ## Combine the PC1 coordinates and cluster number with the rest of the data to create the final plot
+names(final.plot.df)[names(final.plot.df) == 'sustainable_modes_total'] <- 'Rate of Sustainable Travel'
+names(final.plot.df)[names(final.plot.df) == 'pca.v2.x...1.'] <- 'PC1 Coordinates'
+names(final.plot.df)[names(final.plot.df) == 'k3.samp.v2.cluster'] <- 'Cluster' ## Renaming to make plots cleaner.
+
+final.plot <- ggplot(data = final.plot.df, aes(x = `PC1 Coordinates`, y = `Rate of Sustainable Travel`)) + 
+  geom_point(aes(color = as.factor(`Cluster`))) +
+    geom_mark_hull(aes(fill = as.factor(`Cluster`)), alpha = 0.1, concavity = 0)
+
+final.plot ## Pretty stratified, although clusters 2 & 3 have plenty of overlap. However, if we look at the means of each cluster based on key variables.
+
+final.plot.df %>%
+  group_by(Cluster) %>%
+  summarize(mean_sustravel = mean(`Rate of Sustainable Travel`, na.rm = TRUE),
+            mean_pdensity = mean(pop_density, na.rm = TRUE),
+            mean_idensity = mean(Intersection.Per.Acre, na.rm = TRUE),
+            mean_sdensity = mean(Stops.Per.Acre, na.rm = TRUE),
+            mean_wpop = mean(race_whiteE, na.rm = TRUE))
+
+## Cluster 1, which has the highest rates of sustainable travel, also are the densest, have the most transit stops per acre, and are the most diverse in terms of population. Cluster 3, looks to be the most auto-dependent, has the lowest population density, and is whiter than the other two clusters. 
 ```
 
 ## Model X - Support Vector Machines
