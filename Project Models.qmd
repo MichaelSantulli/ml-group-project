@@ -221,8 +221,8 @@ test <- sample(dim(model_data_svm)[1],10000)
 model_data_svm_train <- model_data_svm[train,]
 model_data_svm_test <- model_data_svm[test,]
 
-#svm.fit <- svm(sustainable_modes_class ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = model_data_svm_train, kernel = "linear", cost = 10, scale = TRUE)
 
+#Create a linear SVC model
 tune.out <- tune(svm, 
              sustainable_modes_class ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Intersection.Per.Acre + Stops.Per.Acre + pop_density,
              data = model_data_svm_train,
@@ -236,11 +236,47 @@ summary(bestmod)
 svm_predict <- predict(bestmod, model_data_svm_test)
 results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
 
-test_error <- (results[1,2] + results[2,1])/10000
+svm_linear_test_error <- (results[1,2] + results[2,1])/10000
 
-test_error
+#Create a polynomial SVC model
+tune.out <- tune(svm, 
+             sustainable_modes_class ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Intersection.Per.Acre + Stops.Per.Acre + pop_density,
+             data = model_data_svm_train,
+             kernel = "polynomial",
+             degree = 2,
+             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100))
+             )
+
+bestmod <- tune.out$best.model
+summary(bestmod)
+
+svm_predict <- predict(bestmod, model_data_svm_test)
+results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
+
+svm_poly_test_error <- (results[1,2] + results[2,1])/10000
+
+#Create a radial SVC model
+tune.out <- tune(svm, 
+             sustainable_modes_class ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Intersection.Per.Acre + Stops.Per.Acre + pop_density,
+             data = model_data_svm_train,
+             kernel = "radial",
+             gamma = 1,
+             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100))
+             )
+
+bestmod <- tune.out$best.model
+summary(bestmod)
+
+svm_predict <- predict(bestmod, model_data_svm_test)
+results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
+
+svm_rad_test_error <- (results[1,2] + results[2,1])/10000
 
 
 
+#Compare results
+svm_linear_test_error
+svm_poly_test_error
+svm_rad_test_error
 
 ```
