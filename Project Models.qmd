@@ -813,9 +813,9 @@ svm_rad_test_error4
 
 ```{r}
 set.seed(1)
-train <- sample(dim(model_data_svm)[1],1000)
+train <- sample(dim(model_data_svm)[1],10000)
 set.seed(2)
-test <- sample(dim(model_data_svm)[1],1000)
+test <- sample(dim(model_data_svm)[1],10000)
 
 model_data_svm_train <- model_data_svm[train,]
 model_data_svm_test <- model_data_svm[test,]
@@ -897,14 +897,17 @@ tune.out <- tune(svm,
              data = model_data_svm_train,
              kernel = "radial",
              gamma = 2,
-             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100))
+             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100)),
+             decision.values = TRUE
              )
 
 bestmod <- tune.out$best.model
 summary(bestmod)
 
-svm_predict <- predict(bestmod, model_data_svm_test)
-results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
+svm_predict <- predict(bestmod, model_data_svm_test, decision.values = TRUE)
+#save for ROC chart at the end. Best overall test error with p = 10000
+bestsvm_predict <- svm_predict
+bestresults <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
 
 svm_rad_test_error2 <- mean(svm_predict != model_data_svm_test$sustainable_modes_class)
 
@@ -962,9 +965,9 @@ model_data_svm <- select(model_data_svm, sustainable_modes_class, Stops.Per.Acre
 
 #Sample size set to 1000 initiatlly for fast runtime, set to 10,000 for higher accuracy and runtime of a few minutes.
 set.seed(1)
-train <- sample(dim(model_data_svm)[1],1000)
+train <- sample(dim(model_data_svm)[1],10000)
 set.seed(2)
-test <- sample(dim(model_data_svm)[1],1000)
+test <- sample(dim(model_data_svm)[1],10000)
 
 model_data_svm_train <- model_data_svm[train,]
 model_data_svm_test <- model_data_svm[test,]
@@ -981,7 +984,8 @@ tune.out <- tune(svm,
              sustainable_modes_class ~ Stops.Per.Acre + pop_density,
              data = model_data_svm_train,
              kernel = "linear",
-             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100))
+             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100)),
+             decision.values = TRUE
              )
 
 bestmod <- tune.out$best.model
@@ -991,10 +995,12 @@ plot(bestmod, model_data_svm_train, xlim = c(0, 25000), ylim = c(0,0.25))
 
 
 
-svm_predict <- predict(bestmod, model_data_svm_test)
+svm_predict <- predict(bestmod, model_data_svm_test, decision.values = TRUE)
 results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
 
 svm_linear_test_error <- mean(svm_predict != model_data_svm_test$sustainable_modes_class)
+
+
 
 #Create a polynomial (quadratic) SVC model
 tune.out <- tune(svm, 
@@ -1100,7 +1106,8 @@ tune.out <- tune(svm,
              data = model_data_svm_train,
              kernel = "radial",
              gamma = 4,
-             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100))
+             ranges = list(c(0.001, 0.01, 0.1, 1, 5, 10, 100)),
+             decision.values = TRUE
              )
 
 bestmod <- tune.out$best.model
@@ -1108,7 +1115,7 @@ summary(bestmod)
 
 plot(bestmod, model_data_svm_train, xlim = c(0, 25000), ylim = c(0,0.25))
 
-svm_predict <- predict(bestmod, model_data_svm_test)
+svm_predict <- predict(bestmod, model_data_svm_test, decision.values = TRUE)
 results <- table(predict = svm_predict, truth = model_data_svm_test$sustainable_modes_class)
 
 svm_rad_test_error4 <- mean(svm_predict != model_data_svm_test$sustainable_modes_class)
@@ -1122,3 +1129,20 @@ svm_rad_test_error2
 svm_rad_test_error3
 svm_rad_test_error4
 ```
+
+```{r}
+##Here we pot an ROC curve for the SVM with the best overall test error, which is the radial kernel with gamma = 4, n = 10000, and subset selection variables.
+library(ROCR)
+
+rocplot <- function(pred, truth, ...) {
+  predob <- prediction(pred, truth)
+  perf <- performance(predob, "tpr", "fpr")
+  plot(perf, ...)
+}
+
+fitted <- attributes(bestsvm_predict)$decision.values
+
+par(mfrow = c(1, 2))
+rocplot(-fitted, model_data_svm_test[,"sustainable_modes_class"], main = "Radial Kernel SVM", sub = "g = 2, n = 10000")
+```
+
