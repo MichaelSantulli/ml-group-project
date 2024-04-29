@@ -24,11 +24,11 @@ library(tidycensus)
 census_key <- Sys.getenv("CENSUS_API_KEY")
 
 #Load variables for 5 year ACS. Use view() function to browse.
-vars_acs5 <- load_variables(year = 2019, dataset = "acs5")
+vars_acs5 <- load_variables(year = 2022, dataset = "acs5")
 
-vars_acs5_profile <- load_variables(year = 2019, dataset = "acs5/profile")
+vars_acs5_profile <- load_variables(year = 2022, dataset = "acs5/profile")
 
-vars_acs5_subject <- load_variables(year = 2019, dataset = "acs5/subject")
+vars_acs5_subject <- load_variables(year = 2022, dataset = "acs5/subject")
 
 
 
@@ -166,6 +166,6 @@ model_data <- mutate(
 view(model_data)
 
 #Export the final dataset to a .csv file
-write.csv(model_data, file = "Transportation Data.csv")
+write.csv(model_data, file = "Transportation_Data_merged.csv")
 
 ```
