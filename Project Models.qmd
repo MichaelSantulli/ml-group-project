@@ -12,6 +12,7 @@ This file is for building and testing machine learning models.
 library(tidyverse)
 
 #Load and preview dataset for analysis
+##If you run the Project Data.qmd file it will produce the file below
 model_data <- read.csv("Transportation_Data_merged.csv")
 #view(model_data)
 
@@ -25,7 +26,547 @@ names(model_data)
 dim(model_data)
 ```
 
-## Model X - Unsupervised Clustering
+#### Data Prep
+
+```{r}
+library(ISLR2)
+library(MASS)
+attach(model_data)
+```
+
+Creating binary variable called Sustainable Transport. If 10% of census tract opts for an alternative mode of transit then it will be labeled as 1, if not it will be labeled 0.
+
+```{r}
+Sustainable_Transport <- ifelse(model_data$sustainable_modes_total > 10, 1, 0)
+```
+
+Created new data frame with the new variable and remove missing observations.
+
+```{r}
+model_data01 <- data.frame(Sustainable_Transport, model_data)
+names(model_data01)
+model_data01 <- na.omit(model_data01)
+dim(model_data01)
+```
+
+Creating test and training sets.
+
+```{r}
+set.seed(1)
+training_subset_cl = sample(nrow(model_data01), nrow(model_data01) / 2) #split the dataset! 
+testing_subset_cl = setdiff(1:nrow(model_data01), training_subset_cl)
+# S U B S E T S
+train_data_cl = model_data01[training_subset_cl, ] #Subset the training data!
+test_data_cl = model_data01[testing_subset_cl, ] #Subset the testing data 
+#View(model_data01)
+```
+
+#### Variables for Analysis
+
+(from Variable Selection) age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE
+
+# 1 - Linear Regression
+
+### LR1 (Median Age)
+
+For every 1 unit increase in the median age, there is a -.20 decrease of people taking a sustainable mode of transit within a census tract (holding all other variables constant).
+
+```{r}
+#all modes combined (pub transit, carpool, walking, biking)
+lm.fit <- lm(sustainable_modes_total ~ age_medianE, data = model_data01)
+summary(lm.fit)
+plot(sustainable_modes_total ~ age_medianE, data = model_data01, col = "sienna1", xlab = "Median Age", ylab = "Sustainable Transport")
+grid(col = "black")
+abline(lm.fit)
+```
+
+LR1 Test Error = 44.28248
+
+```{r}
+lm.fit1 <- lm(sustainable_modes_total ~ age_medianE, data = train_data_cl)
+lmpred1 <- predict(lm.fit1, newdata = test_data_cl)
+mean.lm.fit1 <- mean((train_data_cl$sustainable_modes_total - lmpred1)^2)
+mean.lm.fit1
+```
+
+### LR2 (Intersections Per Acre)
+
+```{r}
+lm.fit2 <- lm(sustainable_modes_total ~ Intersection.Per.Acre, data = model_data01)
+summary(lm.fit2)
+plot(sustainable_modes_total ~ Intersection.Per.Acre, data = model_data01, col = "tan1", xlab = "Intersections Per Acre", ylab = "Sustainable Transport")
+grid(col = "black")
+abline(lm.fit2)
+```
+
+LR2 Test Error = 48.24898
+
+```{r}
+lm.fit.2 <- lm(sustainable_modes_total ~ Intersection.Per.Acre, data = train_data_cl)
+lmpred2 <- predict(lm.fit.2, newdata = test_data_cl)
+mean.lm.fit2 <- mean((train_data_cl$sustainable_modes_total - lmpred2)^2)
+mean.lm.fit2
+
+```
+
+### LR3 (Stops Per Acre)
+
+```{r}
+lm.fit3 <- lm(sustainable_modes_total ~ Stops.Per.Acre, data = model_data01)
+summary(lm.fit3)
+plot(sustainable_modes_total ~ Stops.Per.Acre, data = model_data, col = "palegreen2", xlab = "Stops per Acre", ylab = "Sustainable Transport")
+grid(col = "black")
+abline(lm.fit3)
+```
+
+LR3 Test Error = 52.2354
+
+```{r}
+lm.fit.3 <- lm(sustainable_modes_total ~ Stops.Per.Acre, data = train_data_cl)
+lmpred3 <- predict(lm.fit.3, newdata = test_data_cl)
+mean.lm.fit3 <- mean((train_data_cl$sustainable_modes_total - lmpred3)^2)
+mean.lm.fit3
+```
+
+### LR4 (Population Density)
+
+```{r}
+lm.fit4 <- lm(sustainable_modes_total ~ pop_density, data = model_data01)
+summary(lm.fit4)
+plot(sustainable_modes_total ~ pop_density, data = model_data, col = "snow3", xlab = "Population Density", ylab = "Sustainable Transport")
+grid(col = "black")
+abline(lm.fit4)
+```
+
+LR4 Test Error = 56.84854
+
+```{r}
+lm.fit.4 <- lm(sustainable_modes_total ~ pop_density, data = train_data_cl)
+lmpred4 <- predict(lm.fit.4, newdata = test_data_cl)
+mean.lm.fit4 <- mean((train_data_cl$sustainable_modes_total - lmpred4)^2)
+mean.lm.fit4
+```
+
+### LR5 (Median Household Income)
+
+```{r}
+lm.fit5 <- lm(sustainable_modes_total ~ median_household_incomeE, data = model_data01)
+summary(lm.fit5)
+plot(sustainable_modes_total ~ median_household_incomeE, data = model_data, col = "snow3", xlab = "Median Household Income", ylab = "Sustainable Transport")
+grid(col = "black")
+abline(lm.fit5)
+```
+
+LR5 Test Error = 41.24408
+
+```{r}
+lm.fit.5 <- lm(sustainable_modes_total ~ median_household_incomeE, data = train_data_cl)
+lmpred5 <- predict(lm.fit.5, newdata = test_data_cl)
+mean.lm.fit5 <- mean((train_data_cl$sustainable_modes_total - lmpred5)^2)
+mean.lm.fit5
+```
+
+### LR6 (Median Monthly Housing Costs)
+
+```{r}
+lm.fit6 <- lm(sustainable_modes_total ~ median_monthly_housing_costsE, data = model_data01)
+summary(lm.fit6)
+plot(sustainable_modes_total ~ median_monthly_housing_costsE, data = model_data, col = "goldenrod2", xlab = "Median Household Income", ylab = "Sustainable Transport")
+grid(col = "black")
+abline(lm.fit6)
+```
+
+LR6 Test Error = 42.55701
+
+```{r}
+lm.fit.5 <- lm(sustainable_modes_total ~ median_monthly_housing_costsE, data = train_data_cl)
+lmpred5 <- predict(lm.fit.5, newdata = test_data_cl)
+mean.lm.fit5 <- mean((train_data_cl$sustainable_modes_total - lmpred5)^2)
+mean.lm.fit5
+```
+
+# 2 - Multiple Linear Regression
+
+### MLR1 (Variable Selection)
+
+Predictors - Median Age, Intersections Per Acre, Stops Per Acre, Population Density, Median Household Income, and Median Monthly Housing Costs.
+
+```{r}
+mlrfit1 <- lm(sustainable_modes_total ~ age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01)
+summary(mlrfit1)
+```
+
+MLR1 Test Error = 60.89161
+
+```{r}
+mlrfit_1 <- lm(sustainable_modes_total ~ age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = train_data_cl)
+mlrmpred1 <- predict(mlrfit_1, newdata = test_data_cl)
+mean.mlrfit1 <- mean((train_data_cl$sustainable_modes_total - mlrmpred1)^2)
+mean.mlrfit1 #test mse 
+
+```
+
+### MLR2 (4 variables)
+
+Predictors - Number of Intersections, Number of Transit Stops, Intersections Per Acre, and Stops per Acre.
+
+```{r}
+mlr2 <- lm(sustainable_modes_total ~ Number.of.Intersections + Number.of.Transit.Stops + Intersection.Per.Acre + Stops.Per.Acre, data = model_data01)
+summary(mlr2)
+```
+
+MLR2 Test Error = 54.73618
+
+```{r}
+mlr.fit2 <- lm(sustainable_modes_total ~ Number.of.Intersections + Number.of.Transit.Stops + Intersection.Per.Acre + Stops.Per.Acre, data = train_data_cl)
+mlrmpred2 <- predict(mlr.fit2, newdata = test_data_cl)
+mean.mlrfit2 <- mean((train_data_cl$sustainable_modes_total - mlrmpred2)^2)
+mean.mlrfit2
+```
+
+### MLR3 (+ Racial Demographics)
+
+Predictors - Racial Demographics (White, Black, Native American, Pacific Islander, Other, 2 or more, Hispanic), Median Age, Intersections Per Acre, Stops Per Acre, Population Density, Median Household Income, and Median Monthly Housing Costs.
+
+```{r}
+mlr3 <- lm(sustainable_modes_total ~ race_whiteE + race_blackE + race_native_americanE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01)
+summary(mlr3)
+
+```
+
+MLR3 Test Error = 61.0775
+
+```{r}
+mlr.fit3 <- lm(sustainable_modes_total ~ race_whiteE + race_blackE + race_native_americanE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = train_data_cl)
+mlrmpred3 <- predict(mlr.fit3, newdata = test_data_cl)
+mean.mlrfit3 <- mean((train_data_cl$sustainable_modes_total - mlrmpred3)^2)
+mean.mlrfit3
+```
+
+# 3 - Linear Discriminant Analysis
+
+### LDA1 (Variable Selection)
+
+Predictors- Median Age, Intersections Per Acre, Stops Per Acre, Population Density, Median Household Income, and Median Monthly Housing Costs.
+
+```{r}
+lda.fit1 <- lda(Sustainable_Transport ~ age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01, subset = training_subset_cl, family = binomial)
+lda.pred1 <- predict(lda.fit1, newdata = test_data_cl) #predicting, but this will be for the test data...
+lda.class1 <- lda.pred1$class 
+lda.fit1
+
+#success rate :D
+mean(lda.class1 == test_data_cl$Sustainable_Transport)
+#error rate D:
+1 - mean(lda.class1 == test_data_cl$Sustainable_Transport)
+```
+
+LDA1 Test Error = 14.18945%
+
+### LDA2 (+ Racial Demographics)
+
+Predictors - Racial Demographics (White, Black, Native American, Pacific Islander, Other, 2 or more, Hispanic), Median Age, Intersections Per Acre, Stops Per Acre, Population Density, Median Household Income, and Median Monthly Housing Costs.
+
+```{r}
+lda.fit2 <- lda(Sustainable_Transport ~ race_whiteE + race_blackE + race_native_americanE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01, subset = training_subset_cl, family = binomial)
+lda.pred2 <- predict(lda.fit2, newdata = test_data_cl) #predicting, but this will be for the test data...
+lda.class2 <- lda.pred2$class 
+lda.fit2
+
+#success rate :D
+mean(lda.class2 == test_data_cl$Sustainable_Transport)
+#error rate D:
+1 - mean(lda.class2 == test_data_cl$Sustainable_Transport)
+```
+
+LDA2 Test Error = 14.23051%
+
+# 4 - Quadratic Discriminant Analysis
+
+### QDA1 (Variable Selection)
+
+Predictors- Median Age, Intersections Per Acre, Stops Per Acre, Population Density, Median Household Income, and Median Monthly Housing Costs.
+
+```{r}
+qda.fit1 <- qda(Sustainable_Transport ~ age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01, subset = training_subset_cl)
+qda.class1 <- predict(qda.fit1, test_data_cl)$class 
+#success rate
+mean(qda.class1 == test_data_cl$Sustainable_Transport)
+#error rate is 1 - success rate
+1 - mean(qda.class1 == test_data_cl$Sustainable_Transport) 
+qda.fit1
+```
+
+QDA1 Test Error = 14.3078%
+
+### QDA2 (+ Racial Demographics)
+
+```{r}
+qda.fit2 <- qda(Sustainable_Transport ~ race_whiteE + race_blackE + race_native_americanE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01, subset = training_subset_cl)
+qda.class2 <- predict(qda.fit2, test_data_cl)$class 
+#success rate
+mean(qda.class2 == test_data_cl$Sustainable_Transport)
+#error rate is 1 - success rate
+1 - mean(qda.class2 == test_data_cl$Sustainable_Transport) 
+qda.fit2
+```
+
+QDA2 Test Error = 15.42846%
+
+# 5 - Multiple Logistic Regression
+
+### MLogR1 (Variable Selection)
+
+Predictors - Median Age, Intersections Per Acre, Stops Per Acre, Population Density, Median Household Income, and Median Monthly Housing Costs.
+
+```{r}
+glm.fits1 <- glm(Sustainable_Transport ~ age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01, family = binomial, subset = training_subset_cl)
+glm.probs1 <- predict(glm.fits1, type = "response")
+glm.pred1 <- rep("0", nrow(model_data01))
+glm.pred1[glm.probs1 > .25] = "1"
+table(glm.pred1, model_data01$Sustainable_Transport)
+(12504+14157)/(12504+14157+3313+52834)
+summary(glm.fits1)
+glm.fits1
+```
+
+MlogR1 Test Error = 32.19616%
+
+### MLogR2 (+ Racial Demographics)
+
+```{r}
+glm.fits2 <- glm(Sustainable_Transport ~ race_whiteE + race_blackE + race_native_americanE + race_pacific_islanderE + race_otherE + race_two_or_moreE + race_hispanicE + age_medianE + Intersection.Per.Acre + Stops.Per.Acre + pop_density + median_household_incomeE + median_monthly_housing_costsE, data = model_data01, family = binomial, subset = training_subset_cl)
+glm.probs2 <- predict(glm.fits2, type = "response")
+glm.pred2 <- rep("0", nrow(model_data01))
+glm.pred2[glm.probs2 > .25] = "1"
+table(glm.pred2, model_data01$Sustainable_Transport)
+(12468+14265)/(12468+14265+3349+52726)
+summary(glm.fits2)
+glm.fits2
+```
+
+MlogR2 Test Error = 32.28311%
+
+
+
+
+
+
+## 6 - Boot
+
+```{r}
+data.boot = na.omit(model_data)
+mu_hat_sustainable = mean(data.boot$sustainable_modes_total)
+print(mu_hat_sustainable)
+
+se_mean_sustainable = sd(data.boot$sustainable_modes_total) / sqrt(length(data.boot$sustainable_modes_total))
+print(se_mu_hat_sustainable)
+confidence2.5 = mu_hat_sustainable - 2*se_mean_sustainable
+confidence97.5 = mu_hat_sustainable + 2*se_mean_sustainable
+print(paste("The confidence interval is", confidence2.5, "to", confidence97.5))
+
+
+library(boot)
+mu_hat_se = function(data, index){
+            mean(data.boot$sustainable_modes_total[index])}
+
+set.seed(5)
+boot(data.boot, mu_hat_se, R = 1000)
+confidenceb2.5 = mu_hat_sustainable - 2*0.02136124
+confidenceb97.5 = mu_hat_sustainable + 2*0.02136124
+print(paste("Using bootstrap, the confidence interval is", confidenceb2.5, "to", confidenceb97.5))
+
+t.test(data.boot$sustainable_modes_total)
+#Bootstrap estimates the standard error of the mean to be 0.021 which is slightly smaller than the estimated standard error by hand making our confidence highers about the sample mean. The t-test generates the same confidence interval as the one calculated by hand.
+```
+
+## 7 - Subset Selection
+
+Best Subset
+
+```{r}
+library(leaps)
+regfit.full = regsubsets(model_data$sustainable_modes_total ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_hispanicE + race_otherE + race_two_or_moreE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Number.of.Intersections + Number.of.Transit.Stops + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = model_data)
+#Including sq.mi creates linear dependency in the data and a R warning
+reg.summary = summary(regfit.full)
+
+par(mfrow = c(2,2))
+plot(reg.summary$rss, xlab = "Number of Variables", ylab = "RSS")
+
+plot(reg.summary$cp, xlab = "Number of Variables", ylab = "Cp")
+which.min(reg.summary$cp)
+points(8, reg.summary$cp[8], col = "red", cex = 2, pch = 20)
+
+plot(reg.summary$bic, xlab = "Number of Variables", ylab = "BIC")
+which.min(reg.summary$bic)
+points(8, reg.summary$bic[8], col = "red", cex = 2, pch = 20)
+
+plot(reg.summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq")
+which.max(reg.summary$adjr2)
+points(8, reg.summary$adjr2[8], col = "red", cex = 2, pch = 20)
+
+summary(regfit.full)
+```
+
+Forward Stepwise
+
+```{r}
+regfit.fwd = regsubsets(model_data$sustainable_modes_total ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_hispanicE + race_otherE + race_two_or_moreE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Number.of.Intersections + Number.of.Transit.Stops + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = model_data, method = "forward")
+regfwd.summary = summary(regfit.fwd)
+
+par(mfrow = c(2,2))
+plot(regfwd.summary$rss, xlab = "Number of Variables", ylab = "RSS")
+
+plot(regfwd.summary$cp, xlab = "Number of Variables", ylab = "Cp")
+which.min(regfwd.summary$cp)
+points(8, regfwd.summary$cp[8], col = "red", cex = 2, pch = 20)
+
+plot(regfwd.summary$bic, xlab = "Number of Variables", ylab = "BIC")
+which.min(regfwd.summary$bic)
+points(8, regfwd.summary$bic[8], col = "red", cex = 2, pch = 20)
+
+plot(regfwd.summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq")
+which.max(regfwd.summary$adjr2)
+points(8, regfwd.summary$adjr2[8], col = "red", cex = 2, pch = 20)
+
+summary(regfit.fwd)
+```
+
+Backward Stepwise
+
+```{r}
+regfit.bwd = regsubsets(model_data$sustainable_modes_total ~ race_whiteE + race_blackE + race_native_americanE + race_asianE + race_pacific_islanderE + race_hispanicE + race_otherE + race_two_or_moreE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Number.of.Intersections + Number.of.Transit.Stops + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = model_data, method = "backward")
+regbwd.summary = summary(regfit.bwd)
+
+par(mfrow = c(2,2))
+plot(regbwd.summary$rss, xlab = "Number of Variables", ylab = "RSS")
+
+plot(regbwd.summary$cp, xlab = "Number of Variables", ylab = "Cp")
+which.min(regbwd.summary$cp)
+points(8, regbwd.summary$cp[8], col = "red", cex = 2, pch = 20)
+
+plot(regbwd.summary$bic, xlab = "Number of Variables", ylab = "BIC")
+which.min(regbwd.summary$bic)
+points(8, regbwd.summary$bic[8], col = "red", cex = 2, pch = 20)
+
+plot(regbwd.summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq")
+which.max(regbwd.summary$adjr2)
+points(8, regbwd.summary$adjr2[8], col = "red", cex = 2, pch = 20)
+
+summary(regfit.bwd)
+```
+
+```         
+```
+
+## 8 - Regression Trees (Train/test data split #1)
+
+```{r}
+library(ISLR2)
+library(tree)
+
+set.seed(1)
+train.tree = na.omit(sample(1:nrow(model_data), nrow(model_data) * .9))
+test.tree = na.omit(model_data[-train,])
+
+tree_data = tree(model_data$sustainable_modes_total ~ race_asianE + race_hispanicE + race_otherE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, model_data, subset = train.tree)
+summary(tree_data)
+
+plot(tree_data)
+text(tree_data, pretty = 0, cex = 0.6)
+
+predictions = predict(tree_data, newdata = test.tree)
+mse = mean((test$sustainable_modes_total - predictions)^2)
+print(paste("The test MSE for the regression tree fitted to 'train' and is", mse))
+```
+
+Regression Tree + cross validation
+
+```{r}
+cv.data = cv.tree(tree_data)
+plot(cv.data$size, cv.data$dev, type = "b", xlab = "Tree Size", ylab = "Cross-validated Deviance")
+
+#Pruned to 5 terminal nodes
+prune5_data = prune.tree(tree_data, best = 5)
+plot(prune5_data)
+text(prune5_data, pretty = 0, cex = 0.6)
+
+predictions5 = predict(prune5_data, test.tree)
+prune5_mse = mean((test$sustainable_modes_total - predictions5)^2)
+print(paste("The test MSE for the pruned regression tree (5 terminal nodes) fitted to 'train' is", prune5_mse))
+
+#Pruned to 3 terminal nodes
+prune3_data = prune.tree(tree_data, best = 3)
+plot(prune3_data)
+text(prune3_data, pretty = 0, cex = 0.6)
+
+predictions3 = predict(prune3_data, test.tree)
+prune3_mse = mean((test$sustainable_modes_total - predictions3)^2)
+print(paste("The test MSE for the pruned regression tree (3 terminal nodes) fitted to 'train' is", prune3_mse))
+
+#Pruned to 2 terminal nodes
+prune2_data = prune.tree(tree_data, best = 2)
+plot(prune2_data)
+text(prune2_data, pretty = 0, cex = 0.6)
+
+predictions2 = predict(prune2_data, test.tree)
+prune2_mse = mean((test$sustainable_modes_total - predictions2)^2)
+print(paste("The test MSE for the pruned regression tree (2 terminal nodes) fitted to 'train' is", prune2_mse))
+
+```
+
+## 9 - Regression Trees (Train/test data split #2)
+
+```{r}
+set.seed(3)
+train.tree = na.omit(sample(1:nrow(model_data), nrow(model_data) * .9))
+test.tree = na.omit(model_data[-train,])
+
+tree_data = tree(model_data$sustainable_modes_total ~ race_asianE + race_hispanicE + race_otherE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, model_data, subset = train.tree)
+summary(tree_data)
+
+plot(tree_data)
+text(tree_data, pretty = 0, cex = 0.6)
+
+predictions = predict(tree_data, newdata = test.tree)
+mse = mean((test$sustainable_modes_total - predictions)^2)
+print(paste("The test MSE for the regression tree fitted to 'train' and is", mse))
+```
+
+## 10 - Bagging
+
+```{r}
+library(randomForest)
+
+set.seed(2)
+data.nomiss = na.omit(model_data)
+train.rf = sample(1:nrow(data.nomiss), nrow(Carseats) * .9)
+test.rf = data.nomiss[-train,]
+
+bag.data = randomForest(sustainable_modes_total ~ race_asianE + race_hispanicE + race_otherE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = data.nomiss, subset = train.rf, mtry = 10, importance = TRUE)
+bag.data
+
+predictions.bag = predict(bag.data, newdata = test.rf)
+mean((test.rf$sustainable_modes_total - predictions.bag)^2)
+
+importance(bag.data)
+```
+
+## 11 - Random Forests
+
+```{r}
+rf.data = randomForest(sustainable_modes_total ~ race_asianE + race_hispanicE + race_otherE + age_medianE + median_household_incomeE + median_monthly_housing_costsE + Acres + Intersection.Per.Acre + Stops.Per.Acre + pop_density, data = data.nomiss, subset = train.rf, mtry = 5, importance = TRUE)
+rf.data
+
+predictions.rf = predict(rf.data, newdata = test.rf)
+mean((test.rf$sustainable_modes_total - predictions.rf)^2)
+
+importance(rf.data)
+```
+
+
+
+## 12 - Unsupervised Clustering
 
 We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be emulated by their peers.
 
@@ -97,7 +638,7 @@ final.plot.df %>%
 ## Cluster 1, which has the highest rates of sustainable travel, also are the densest, have the most transit stops per acre, and are the most diverse in terms of population. Cluster 3, looks to be the most auto-dependent, has the lowest population density, and is whiter than the other two clusters. 
 ```
 
-## Model X - Support Vector Machines
+## 13 - Support Vector Machines
 
 ### SVM with all variables
 
