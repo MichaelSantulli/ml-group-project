@@ -25,13 +25,6 @@ names(model_data)
 dim(model_data)
 ```
 
-
-## Model X
-
-```{r}
-
-```
-
 ## Model X - Unsupervised Clustering
 
 We are looking to potentially find clusters of census tracts to recommend policies to, in an effort to increase their sustainable mode of transportation usage rates. Clusters that are similar to each other in terms of demographics or infrastructure, but have higher rates of non-automobile usage may offer policies that can be emulated by their peers.
